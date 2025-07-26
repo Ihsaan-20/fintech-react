@@ -7,7 +7,7 @@ const Login = () => {
   const { login, error } = useContext(AuthContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    mobileNumber: '',
     password: ''
   });
 
@@ -17,10 +17,9 @@ const Login = () => {
     if (success) navigate('/dashboard');
   };
 
-  // Dummy social login handlers (replace with real OAuth flows)
   const handleSocialLogin = (provider) => {
     alert(`Login with ${provider} clicked!`);
-    // Implement actual OAuth flow here
+    // TODO: Implement OAuth flow here
   };
 
   return (
@@ -36,16 +35,16 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="mb-3">
-            <label htmlFor="email" className="form-label fw-semibold">
-              Email address
+            <label htmlFor="mobileNumber" className="form-label fw-semibold">
+              Mobile Number
             </label>
             <input
-              id="email"
-              type="email"
+              id="mobileNumber"
+              type="tel"
               className="form-control"
-              placeholder="name@example.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="Enter your mobile number"
+              value={formData.mobileNumber}
+              onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
               required
               autoFocus
             />
@@ -82,9 +81,9 @@ const Login = () => {
 
         <hr />
 
-        <div className="text-center mb-2 fw-semibold text-secondary">Or login with</div>
+        {/* <div className="text-center mb-2 fw-semibold text-secondary">Or login with</div> */}
 
-        <div className="d-flex justify-content-center gap-3">
+        {/* <div className="d-flex justify-content-center gap-3">
           <button
             onClick={() => handleSocialLogin('Google')}
             className="btn btn-outline-danger d-flex align-items-center gap-2"
@@ -106,7 +105,7 @@ const Login = () => {
           >
             <FaGithub size={20} /> GitHub
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
