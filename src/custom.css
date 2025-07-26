@@ -1,0 +1,100 @@
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card-custom {
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.balance-amount {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #198754; /* Bootstrap green */
+}
+
+.btn-primary-custom {
+  background-color: #6610f2;
+  border: none;
+}
+
+.btn-primary-custom:hover {
+  background-color: #520dc2;
+}
+
+.table-custom thead {
+  background-color: #6610f2;
+  color: white;
+}
+
+.table-custom tbody tr:hover {
+  background-color: #e9d8fd;
+  cursor: pointer;
+}
+
+/* Existing styles */
+
+.card-custom {
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  color: white;
+}
+
+.card-custom:hover {
+  transform: translateY(-8px);
+}
+
+.liquid-box {
+  position: relative;
+  padding: 2rem;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  color: white;
+}
+
+.liquid-box::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, #6610f2, #d6336c, #198754, #0dcaf0);
+  background-size: 400% 400%;
+  animation: liquidGlow 8s ease infinite;
+  filter: blur(60px);
+  opacity: 0.7;
+  z-index: -1;
+  border-radius: 20px;
+}
+
+@keyframes liquidGlow {
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+.liquid-box h5 {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 0.3rem;
+  text-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+.liquid-box p {
+  font-size: 1rem;
+  opacity: 0.9;
+  text-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+.liquid-icon {
+  font-size: 3rem;
+  margin-bottom: 0.8rem;
+  text-shadow: 0 0 8px rgba(0,0,0,0.4);
+}
