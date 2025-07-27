@@ -6,7 +6,7 @@ export default function CompleteRegistration() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { setUser } = useContext(AuthContext); // add this line
+  const { setUser } = useContext(AuthContext);
 
   const mobileNumber = location.state?.mobileNumber;
   const country = location.state?.country;
@@ -43,14 +43,10 @@ export default function CompleteRegistration() {
       const data = await response.json();
       console.log(data);
 
-      // Save token and user info both in localStorage
       localStorage.setItem("accessToken", data.data.accessToken);
       localStorage.setItem("user", JSON.stringify(data.data.user));
-
-      // Update user in AuthContext so dashboard knows about it
       setUser(data.data.user);
 
-      // Redirect to dashboard
       navigate("/dashboard");
 
     } catch (err) {
@@ -59,53 +55,102 @@ export default function CompleteRegistration() {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "480px" }}>
-      <h2 className="mb-4 text-center">Complete Registration</h2>
-      <form onSubmit={handleComplete} className="border p-4 rounded shadow-sm bg-light">
-        <div className="mb-3">
-          <label className="form-label">First Name</label>
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="form-control"
-          />
-        </div>
+    <div
+      className="vh-100 d-flex align-items-center justify-content-center"
+      style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        overflow: 'hidden',
+        padding: '1rem',
+      }}
+    >
+      <div
+        className="card border-0 shadow-lg p-4"
+        style={{
+          maxWidth: "420px",
+          width: "100%",
+          borderRadius: "20px",
+          background: "rgba(255, 255, 255, 0.9)",
+          backdropFilter: "blur(20px)",
+        }}
+      >
+        <h2 className="mb-4 text-center fw-bold" style={{ color: '#2d3748' }}>
+          Complete Registration ✅
+        </h2>
 
-        <div className="mb-3">
-          <label className="form-label">Middle Name</label>
-          <input
-            type="text"
-            value={middleName}
-            onChange={(e) => setMiddleName(e.target.value)}
-            className="form-control"
-          />
-        </div>
+        <form onSubmit={handleComplete} noValidate>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">First Name</label>
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="form-control"
+              placeholder="Enter first name"
+              required
+            />
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label">Last Name</label>
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="form-control"
-          />
-        </div>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Middle Name</label>
+            <input
+              type="text"
+              value={middleName}
+              onChange={(e) => setMiddleName(e.target.value)}
+              className="form-control"
+              placeholder="(Optional)"
+            />
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="form-control"
-          />
-        </div>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Last Name</label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="form-control"
+              placeholder="Enter last name"
+              required
+            />
+          </div>
 
-        {error && <small className="text-danger">{error}</small>}
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="form-control"
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-        <button type="submit" className="btn btn-success w-100">Complete Registration</button>
-      </form>
+          {error && <small className="text-danger">{error}</small>}
+
+          <button
+            type="submit"
+            className="btn w-100 fw-semibold"
+            style={{
+              borderRadius: '50px',
+              padding: '0.75rem',
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              color: 'white',
+              transition: 'all 0.3s ease',
+              marginTop: '1rem'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #3b8dd6 0%, #00c4d6 100%)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            Complete Registration
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

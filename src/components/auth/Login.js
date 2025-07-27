@@ -23,9 +23,27 @@ const Login = () => {
   };
 
   return (
-    <div className="vh-100 d-flex align-items-center justify-content-center bg-light">
-      <div className="card shadow p-4" style={{ maxWidth: '400px', width: '100%' }}>
-        <h3 className="card-title text-center mb-4 fw-bold">Welcome Back</h3>
+    <div
+      className="vh-100 d-flex align-items-center justify-content-center"
+      style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        overflow: 'hidden',
+        padding: '1rem',
+      }}
+    >
+      <div
+        className="card border-0 shadow-lg p-4"
+        style={{
+          maxWidth: '400px',
+          width: '100%',
+          borderRadius: '20px',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        <h3 className="text-center mb-3 fw-bold" style={{ color: '#2d3748' }}>
+          Welcome Back 👋
+        </h3>
 
         {error && (
           <div className="alert alert-danger text-center" role="alert">
@@ -42,7 +60,7 @@ const Login = () => {
               id="mobileNumber"
               type="tel"
               className="form-control"
-              placeholder="Enter your mobile number"
+              placeholder="Enter your mobile number (e.g. 03157073692)"
               value={formData.mobileNumber}
               onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
               required
@@ -65,7 +83,25 @@ const Login = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary w-100 fw-semibold mb-3">
+          <button
+            type="submit"
+            className="btn w-100 fw-semibold mb-3"
+            style={{
+              borderRadius: '50px',
+              padding: '0.75rem',
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              color: 'white',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #3b8dd6 0%, #00c4d6 100%)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
             Log In
           </button>
         </form>
@@ -79,32 +115,84 @@ const Login = () => {
           </small>
         </div>
 
-        <hr />
+        <hr className="mb-3" />
 
-        {/* <div className="text-center mb-2 fw-semibold text-secondary">Or login with</div> */}
-
-        {/* <div className="d-flex justify-content-center gap-3">
-          <button
-            onClick={() => handleSocialLogin('Google')}
-            className="btn btn-outline-danger d-flex align-items-center gap-2"
-            style={{ minWidth: '120px' }}
-          >
-            <FaGoogle size={20} /> Google
-          </button>
-          <button
-            onClick={() => handleSocialLogin('Apple')}
-            className="btn btn-outline-dark d-flex align-items-center gap-2"
-            style={{ minWidth: '120px' }}
-          >
-            <FaApple size={20} /> Apple
-          </button>
-          <button
-            onClick={() => handleSocialLogin('GitHub')}
-            className="btn btn-outline-secondary d-flex align-items-center gap-2"
-            style={{ minWidth: '120px' }}
-          >
-            <FaGithub size={20} /> GitHub
-          </button>
+        {/* <div className="text-center">
+          <p className="mb-2 fw-semibold" style={{ color: '#2d3748' }}>Or sign in with</p>
+          <div className="d-flex justify-content-center gap-3">
+            <button
+              className="btn btn-outline-secondary border-0 shadow-sm"
+              onClick={() => handleSocialLogin('Google')}
+              style={{
+                borderRadius: '50%',
+                width: '50px',
+                height: '50px',
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+              }}
+            >
+              <FaGoogle size={20} color="#DB4437" />
+            </button>
+            <button
+              className="btn btn-outline-secondary border-0 shadow-sm"
+              onClick={() => handleSocialLogin('Apple')}
+              style={{
+                borderRadius: '50%',
+                width: '50px',
+                height: '50px',
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+              }}
+            >
+              <FaApple size={20} color="#000000" />
+            </button>
+            <button
+              className="btn btn-outline-secondary border-0 shadow-sm"
+              onClick={() => handleSocialLogin('GitHub')}
+              style={{
+                borderRadius: '50%',
+                width: '50px',
+                height: '50px',
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+              }}
+            >
+              <FaGithub size={20} color="#333" />
+            </button>
+          </div>
         </div> */}
       </div>
     </div>

@@ -5,6 +5,8 @@ import Login from './components/auth/Login';
 import Dashboard from './components/Dashboard';
 import VerifyOtp from "./components/auth/VerifyOtp";
 import CompleteRegistration from "./components/auth/CompleteRegistration";
+import SendMoney from './components/SendMoney';
+import Transaction from './components/Transaction';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Dashboard />} />
+          <Route path="/send-money" element={<SendMoney />} />
+          <Route path="/transactions" element={<Transaction />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

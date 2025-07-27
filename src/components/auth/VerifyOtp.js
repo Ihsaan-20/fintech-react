@@ -52,7 +52,6 @@ export default function VerifyOtp() {
         throw new Error(errData.message || "Verification failed");
       }
 
-      // ✅ Verified — move to Complete Registration
       navigate("/complete-registration", {
         state: { mobileNumber, country }
       });
@@ -92,58 +91,98 @@ export default function VerifyOtp() {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "480px" }}>
-      <h2 className="mb-4 text-center">Verify OTP</h2>
-      <form onSubmit={handleVerify} className="border p-4 rounded shadow-sm bg-light">
-        <div className="mb-3">
-          <label className="form-label">Mobile Number</label>
-          <input
-            type="text"
-            value={mobileNumber}
-            className="form-control"
-            disabled
-          />
-        </div>
+    <div
+      className="vh-100 d-flex align-items-center justify-content-center"
+      style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        overflow: 'hidden',
+        padding: '1rem',
+      }}
+    >
+      <div
+        className="card border-0 shadow-lg p-4"
+        style={{
+          maxWidth: "420px",
+          width: "100%",
+          borderRadius: "20px",
+          background: "rgba(255, 255, 255, 0.9)",
+          backdropFilter: "blur(20px)",
+        }}
+      >
+        <h2 className="mb-4 text-center fw-bold" style={{ color: '#2d3748' }}>
+          Verify OTP 🔒
+        </h2>
 
-        <div className="mb-3">
-          <label className="form-label">OTP</label>
-          <input
-            type="text"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="form-control"
-          />
-        </div>
+        <form onSubmit={handleVerify} noValidate>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Mobile Number</label>
+            <input
+              type="text"
+              value={mobileNumber}
+              className="form-control"
+              disabled
+            />
+          </div>
 
-        <div className="mb-3 text-muted">
-          {timer > 0 ? `Expires in: ${timer} seconds` : "OTP expired"}
-        </div>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">OTP</label>
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="form-control"
+              placeholder="Enter OTP"
+              required
+            />
+          </div>
 
-        {error && <small className="text-danger">{error}</small>}
-        {successMessage && <div className="alert alert-success">{successMessage}</div>}
+          <div className="mb-3 text-muted">
+            {timer > 0 ? `Expires in: ${timer} seconds` : "OTP expired"}
+          </div>
 
-        <button type="submit" className="btn btn-primary w-100" disabled={timer === 0}>
-          Verify OTP
-        </button>
+          {error && <small className="text-danger">{error}</small>}
+          {successMessage && <div className="alert alert-success">{successMessage}</div>}
 
-        {resendVisible && (
           <button
-            type="button"
-            className="btn btn-link w-100 mt-3"
-            onClick={handleResend}
+            type="submit"
+            className="btn w-100 fw-semibold mb-3"
+            disabled={timer === 0}
+            style={{
+              borderRadius: '50px',
+              padding: '0.75rem',
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              color: 'white',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #3b8dd6 0%, #00c4d6 100%)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
           >
-            Resend OTP
+            Verify OTP
           </button>
-        )}
 
-        {/* ✅ Back to Register */}
-        <div className="text-center mt-3">
-          <Link to="/register" className="btn btn-link">
-            &larr; Back to Register
-          </Link>
-        </div>
+          {resendVisible && (
+            <button
+              type="button"
+              className="btn btn-link w-100 fw-semibold mb-2"
+              onClick={handleResend}
+            >
+              Resend OTP
+            </button>
+          )}
 
-      </form>
+          <div className="text-center mt-2">
+            <Link to="/register" className="text-primary text-decoration-none fw-semibold">
+              ← Back to Register
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

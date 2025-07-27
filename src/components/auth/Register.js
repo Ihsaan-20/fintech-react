@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate,Link } from "react-router-dom";
-
+import { useNavigate, Link } from "react-router-dom";
 
 const countries = [
   { code: "PK", name: "Pakistan" },
@@ -10,7 +9,7 @@ const countries = [
 ];
 
 export default function Register() {
-  const navigate = useNavigate(); // ✅ INSIDE FUNCTION
+  const navigate = useNavigate();
 
   const [country, setCountry] = useState("PK");
   const [mobileNumber, setMobileNumber] = useState("");
@@ -50,7 +49,6 @@ export default function Register() {
       console.log(data);
       setSuccessMessage(`OTP Sent Successfully! [Demo OTP: ${data.data.otp}]`);
 
-      // ✅ Redirect after success:
       navigate("/verify-otp", {
         state: {
           mobileNumber: mobileNumber,
@@ -67,52 +65,92 @@ export default function Register() {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "480px" }}>
-      <h2 className="mb-4 text-center">Sign Up</h2>
-      <form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-light">
-        <div className="mb-3">
-          <label htmlFor="country" className="form-label">Country</label>
-          <select
-            id="country"
-            className="form-select"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
+    <div
+      className="vh-100 d-flex align-items-center justify-content-center"
+      style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        overflow: 'hidden',
+        padding: '1rem',
+      }}
+    >
+      <div
+        className="card border-0 shadow-lg p-4"
+        style={{
+          maxWidth: "420px",
+          width: "100%",
+          borderRadius: "20px",
+          background: "rgba(255, 255, 255, 0.9)",
+          backdropFilter: "blur(20px)",
+        }}
+      >
+        <h2 className="mb-4 text-center fw-bold" style={{ color: '#2d3748' }}>
+          Create Account 🚀
+        </h2>
+
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="mb-3">
+            <label htmlFor="country" className="form-label fw-semibold">Country</label>
+            <select
+              id="country"
+              className="form-select"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            >
+              {countries.map((c) => (
+                <option key={c.code} value={c.code}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="mobileNumber" className="form-label fw-semibold">Mobile Number</label>
+            <input
+              type="tel"
+              id="mobileNumber"
+              className="form-control"
+              placeholder="Enter 11 digit mobile number"
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+              maxLength={11}
+              required
+            />
+            {error && <small className="text-danger">{error}</small>}
+          </div>
+
+          <button
+            type="submit"
+            className="btn w-100 fw-semibold mb-3"
+            disabled={loading}
+            style={{
+              borderRadius: '50px',
+              padding: '0.75rem',
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              color: 'white',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #3b8dd6 0%, #00c4d6 100%)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
           >
-            {countries.map((c) => (
-              <option key={c.code} value={c.code}>{c.name}</option>
-            ))}
-          </select>
-        </div>
+            {loading ? "Sending OTP..." : "Send OTP"}
+          </button>
 
-        <div className="mb-3">
-          <label htmlFor="mobileNumber" className="form-label">Mobile Number</label>
-          <input
-            type="tel"
-            id="mobileNumber"
-            className="form-control"
-            placeholder="Enter 11 digit mobile number"
-            value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
-            maxLength={11}
-          />
-          {error && <small className="text-danger">{error}</small>}
-        </div>
+          {successMessage && (
+            <div className="alert alert-success mt-2">{successMessage}</div>
+          )}
 
-        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-          {loading ? "Sending OTP..." : "Send OTP"}
-        </button>
-
-        {successMessage && (
-          <div className="alert alert-success mt-3">{successMessage}</div>
-        )}
-
-        {/* ✅ Back to Login */}
-        <div className="text-center mt-3">
-          <Link to="/login" className="btn btn-link">
-            &larr; Back to Login
-          </Link>
-        </div>
-      </form>
+          <div className="text-center mt-3">
+            <Link to="/login" className="text-primary text-decoration-none fw-semibold">
+              ← Back to Login
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
