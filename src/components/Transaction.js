@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import ReactPaginate from 'react-paginate';
 import { useReactToPrint } from 'react-to-print';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+
+
 import Papa from 'papaparse';
 import { FaPrint, FaDownload, FaFilter, FaSort, FaExclamationCircle, FaHistory, FaSignOutAlt, FaArrowLeft } from 'react-icons/fa';
 const Transaction = () => {
@@ -16,8 +20,10 @@ const Transaction = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [transactionCount, setTransactionCount] = useState(0);
+  const [currentMonthWithYear, setCurrentMonthWithYear] = useState('');
   const componentRef = useRef();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -29,21 +35,22 @@ const Transaction = () => {
           return;
         }
 
-        const res = await fetch('http://localhost:8080/api/v1/transaction/history', {
+        const res = await fetch('http://localhost:8080/api/v1/user/current-month', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to fetch transactions');
 
-        setTransactions(data.data || []);
+        // Destructure backend response
+        const { count, currentMonthWithYear, transactions } = data.data;
+        setTransactions(transactions || []);
+        setCurrentMonthWithYear(currentMonthWithYear || '');
+        setTransactionCount(count || 0);
+
       } catch (err) {
         setError(err.message || 'Failed to load transactions. Please try again later.');
-        // Fallback mock data for development
-        setTransactions([
-          { id: 1, date: '2025-07-27', receiver: 'John Doe', amount: 500, type: 'fintech', bank: 'Nayapay', status: 'Completed' },
-          { id: 2, date: '2025-07-26', receiver: 'Jane Smith', amount: 1000, type: 'bank', bank: 'HBL', status: 'Pending' },
-        ]);
+        setTransactions([]);
       } finally {
         setIsLoading(false);
       }
@@ -54,9 +61,9 @@ const Transaction = () => {
   const filteredTransactions = transactions
     .filter((t) =>
       filter
-        ? t.receiver.toLowerCase().includes(filter.toLowerCase()) ||
-          t.bank.toLowerCase().includes(filter.toLowerCase()) ||
-          t.status.toLowerCase().includes(filter.toLowerCase())
+        ? (t.receiver?.toLowerCase().includes(filter.toLowerCase()) ||
+          t.bank?.toLowerCase().includes(filter.toLowerCase()) ||
+          t.status?.toLowerCase().includes(filter.toLowerCase()))
         : true
     )
     .sort((a, b) => {
@@ -66,8 +73,8 @@ const Transaction = () => {
         return sortOrder === 'asc' ? fieldA - fieldB : fieldB - fieldA;
       }
       return sortOrder === 'asc'
-        ? fieldA.localeCompare(fieldB)
-        : fieldB.localeCompare(fieldA);
+        ? (fieldA || '').toString().localeCompare((fieldB || '').toString())
+        : (fieldB || '').toString().localeCompare((fieldA || '').toString());
     });
 
   const pageCount = Math.ceil(filteredTransactions.length / itemsPerPage);
@@ -96,19 +103,49 @@ const Transaction = () => {
     `,
   });
 
+  // const handleExportPDF = () => {
+  //   const pdf = new jsPDF();
+  //   pdf.text(`Transaction History for ${user?.name || 'User'}`, 20, 20);
+  //   filteredTransactions.forEach((t, index) => {
+  //     const yPos = 30 + index * 10;
+  //     pdf.text(
+  //       `ID: ${t.transactionId}, Date: ${t.timestamp}, Receiver: ${t.receiverName}, Amount: ₹${t.amount}, Type: ${t.transactionType}, Bank: ${t.bank}, Status: ${t.status}`,
+  //       20,
+  //       yPos
+  //     );
+  //   });
+  //   pdf.save(`transactions_${user?.name || 'user'}.pdf`);
+  // };
   const handleExportPDF = () => {
-    const pdf = new jsPDF();
-    pdf.text(`Transaction History for ${user?.name || 'User'}`, 20, 20);
-    filteredTransactions.forEach((t, index) => {
-      const yPos = 30 + index * 10;
-      pdf.text(
-        `ID: ${t.id}, Date: ${t.date}, Receiver: ${t.receiver}, Amount: ₹${t.amount}, Type: ${t.type}, Bank: ${t.bank}, Status: ${t.status}`,
-        20,
-        yPos
-      );
-    });
-    pdf.save(`transactions_${user?.name || 'user'}.pdf`);
-  };
+  const pdf = new jsPDF();
+
+  pdf.text(`Transaction History for ${user?.name || 'User'}`, 14, 20);
+
+  const tableColumn = ["Transaction ID", "Date", "Transaction", "Amount", "Type", "Status"];
+  const tableRows = [];
+
+  filteredTransactions.forEach(t => {
+    const transactionData = [
+      t.transactionId,
+      new Date(t.timestamp).toLocaleString(),
+       t.senderId === user.id ? 'Out' : 'In',
+      `${t.amount}`,
+      t.transactionType,
+      t.status
+    ];
+    tableRows.push(transactionData);
+  });
+
+  autoTable(pdf, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: 30,
+  });
+
+  pdf.save(`transactions_${user?.name || 'user'}.pdf`);
+};
+//end here
+
 
   const handleExportCSV = () => {
     try {
@@ -145,68 +182,52 @@ const Transaction = () => {
         >
           <div className="card-body p-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <div className="text-center flex-grow-1">
-                    <h3 className="mb-2 d-flex align-items-center justify-content-center">
-                    <span className="me-3" style={{ fontSize: '1.5rem', color: '#667eea' }}>
-                        <FaHistory />
-                    </span>
-                    Transaction History
-                    </h3>
-                    <p className="text-muted mb-0">
-                    View and manage your transaction records
-                    </p>
-                </div>
-                <div className="d-flex gap-2">
-                    <button
-                    onClick={() => navigate('/dashboard')}
-                    className="btn"
-                    style={{
-                        borderRadius: '10px',
-                        padding: '0.75rem 1.5rem',
-                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                        color: 'white',
-                        transition: 'all 0.3s ease',
-                        backdropFilter: 'blur(10px)',
-                    }}
-                    onMouseOver={(e) => {
-                        e.target.style.background = 'linear-gradient(135deg, #3b8dd6 0%, #00c4d6 100%)';
-                        e.target.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseOut={(e) => {
-                        e.target.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
-                        e.target.style.transform = 'translateY(0)';
-                    }}
-                    aria-label="Go back to dashboard"
-                    >
-                    <FaArrowLeft className="me-2" />
-                    Go Back
-                    </button>
-                    <button
-                    onClick={signout}
-                    className="btn"
-                    style={{
-                        borderRadius: '10px',
-                        padding: '0.75rem 1.5rem',
-                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                        color: 'white',
-                        transition: 'all 0.3s ease',
-                        backdropFilter: 'blur(10px)',
-                    }}
-                    onMouseOver={(e) => {
-                        e.target.style.background = 'linear-gradient(135deg, #3b8dd6 0%, #00c4d6 100%)';
-                        e.target.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseOut={(e) => {
-                        e.target.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
-                        e.target.style.transform = 'translateY(0)';
-                    }}
-                    aria-label="Sign out"
-                    >
-                    <FaSignOutAlt className="me-2" />
-                    Sign Out
-                    </button>
-                </div>
-                </div>
+              <div className="text-center flex-grow-1">
+                <h3 className="mb-2 d-flex align-items-center justify-content-center">
+                  <span className="me-3" style={{ fontSize: '1.5rem', color: '#667eea' }}>
+                    <FaHistory />
+                  </span>
+                  Transaction History
+                </h3>
+                <p className="text-muted mb-0">
+                  View and manage your transaction records
+                </p>
+              </div>
+              <div className="d-flex gap-2">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="btn"
+                  style={{
+                    borderRadius: '10px',
+                    padding: '0.75rem 1.5rem',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    color: 'white',
+                    transition: 'all 0.3s ease',
+                    backdropFilter: 'blur(10px)',
+                  }}
+                  aria-label="Go back to dashboard"
+                >
+                  <FaArrowLeft className="me-2" />
+                  Go Back
+                </button>
+                <button
+                  onClick={signout}
+                  className="btn"
+                  style={{
+                    borderRadius: '10px',
+                    padding: '0.75rem 1.5rem',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    color: 'white',
+                    transition: 'all 0.3s ease',
+                    backdropFilter: 'blur(10px)',
+                  }}
+                  aria-label="Sign out"
+                >
+                  <FaSignOutAlt className="me-2" />
+                  Sign Out
+                </button>
+              </div>
+            </div>
 
             {isLoading ? (
               <div className="text-center">
@@ -241,6 +262,13 @@ const Transaction = () => {
               </div>
             ) : (
               <>
+                <div className="mb-3 text-center">
+                  <h5>
+                    {currentMonthWithYear ? `Transactions for ${currentMonthWithYear}` : 'Transactions'}
+                  </h5>
+                  <p>Total Transactions: {transactionCount}</p>
+                </div>
+
                 <div className="d-flex justify-content-between mb-4">
                   <div className="input-group" style={{ maxWidth: '300px' }}>
                     <span className="input-group-text">
@@ -260,43 +288,13 @@ const Transaction = () => {
                     />
                   </div>
                   <div className="d-flex gap-2 no-print">
-                    <button
-                      className="btn"
-                      onClick={handlePrint}
-                      style={{
-                        borderRadius: '10px',
-                        padding: '0.75rem 1.5rem',
-                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                        color: 'white',
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
+                    <button className="btn" onClick={handlePrint}>
                       <FaPrint className="me-2" /> Print
                     </button>
-                    <button
-                      className="btn"
-                      onClick={handleExportPDF}
-                      style={{
-                        borderRadius: '10px',
-                        padding: '0.75rem 1.5rem',
-                        background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-                        color: 'white',
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
+                    <button className="btn" onClick={handleExportPDF}>
                       <FaDownload className="me-2" /> Export PDF
                     </button>
-                    <button
-                      className="btn"
-                      onClick={handleExportCSV}
-                      style={{
-                        borderRadius: '10px',
-                        padding: '0.75rem 1.5rem',
-                        background: 'linear-gradient(135deg, #66bb6a 0%, #43a047 100%)',
-                        color: 'white',
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
+                    <button className="btn" onClick={handleExportCSV}>
                       <FaDownload className="me-2" /> Export CSV
                     </button>
                   </div>
@@ -309,35 +307,43 @@ const Transaction = () => {
                         <th onClick={() => handleSort('id')} style={{ cursor: 'pointer' }}>
                           ID <FaSort className="ms-1" />
                         </th>
-                        <th onClick={() => handleSort('date')} style={{ cursor: 'pointer' }}>
+                        <th>
+                          Date 
+                        </th>
+                        {/* <th onClick={() => handleSort('date')} style={{ cursor: 'pointer' }}>
                           Date <FaSort className="ms-1" />
+                        </th> */}
+                        <th>Transaction</th>
+                        <th>
+                          Amount 
                         </th>
-                        <th onClick={() => handleSort('receiver')} style={{ cursor: 'pointer' }}>
-                          Receiver <FaSort className="ms-1" />
+                        <th>
+                          Balance 
                         </th>
-                        <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer' }}>
-                          Amount <FaSort className="ms-1" />
+                        <th>
+                          Type 
                         </th>
-                        <th onClick={() => handleSort('type')} style={{ cursor: 'pointer' }}>
-                          Type <FaSort className="ms-1" />
-                        </th>
-                        <th onClick={() => handleSort('bank')} style={{ cursor: 'pointer' }}>
-                          Bank <FaSort className="ms-1" />
-                        </th>
-                        <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>
-                          Status <FaSort className="ms-1" />
+                        <th>
+                          Status 
                         </th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentItems.map((t) => (
                         <tr key={t.id}>
-                          <td>{t.id}</td>
-                          <td>{t.date}</td>
-                          <td>{t.receiver}</td>
-                          <td>₹{t.amount}</td>
-                          <td>{t.type}</td>
-                          <td>{t.bank}</td>
+                          <td>{t.transactionId}</td>
+                          <td>{new Date(t.timestamp).toLocaleString()}</td>
+                          <td
+                            style={{
+                              color: t.senderId === user.id ? 'red' : 'green',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {t.senderId === user.id ? 'Out' : 'In'}
+                          </td>
+                          <td>${t.amount}</td>
+                          <td>${t.balanceAfterTransaction}</td>
+                          <td>{t.transactionType}</td>
                           <td>
                             <span
                               className={`badge ${

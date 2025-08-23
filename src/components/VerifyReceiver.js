@@ -7,73 +7,110 @@ const VerifyReceiver = ({ onVerified, onBack }) => {
   const [bankName, setBankName] = useState('');
   const [error, setError] = useState('');
 
-  const banks = ['Nayapay', 'Easypaisa', 'HBL', 'Meezan', 'UBL','Jazzcash'];
+  const banks = [
+    'HBL',
+    'Meezan',
+    'UBL',
+    'MCB',
+    'Standard Chartered',
+    'Bank Alfalah',
+    'Faysal Bank',
+  ];
+  const wallets = ['Nayapay', 'Easypaisa', 'Jazzcash', 'Sadapay'];
 
   const validateReceiverInput = () => {
     if (!receiverInput) return 'Receiver input is required';
 
     if (transferType === 'fintech') {
-      if (!/^\d{11}$/.test(receiverInput)) return 'Fintech number must be exactly 11 digits';
-    } else if (transferType === 'bank') {
-      if (!bankName) return 'Please select a bank';
-      if (bankName === 'Nayapay' || bankName === 'Easypaisa') {
-        if (!/^\d{11}$/.test(receiverInput)) return `${bankName} number must be 11 digits`;
+      if (!/^\d{11}$/.test(receiverInput)) {
+        return 'Fintech number must be exactly 11 digits';
+      }
+      return null;
+    }
+
+    if (transferType === 'otherwallet') {
+      if (!bankName) return 'Please select a wallet provider';
+      if (wallets.includes(bankName)) {
+        if (!/^\d{11}$/.test(receiverInput)) {
+          return `${bankName} number must be exactly 11 digits`;
+        }
+        return null;
       } else {
-        if (!/^PK[0-9A-Z]{22}$/.test(receiverInput))
-          return 'IBAN must start with PK and be 24 characters long';
+        return 'Invalid wallet provider';
       }
     }
+
+    if (transferType === 'banks') {
+      if (!bankName) return 'Please select a bank';
+
+      // Remove spaces for IBAN check
+      const inputNoSpaces = receiverInput.replace(/\s+/g, '');
+
+      const ibanPattern = /^PK\d{2}[A-Z]{4}\d{16}$/i;
+      const accNumPattern = /^\d{10,16}$/;
+
+      if (!ibanPattern.test(inputNoSpaces) && !accNumPattern.test(receiverInput)) {
+        return 'Bank input must be valid IBAN (PK..) or 10–16 digit account number';
+      }
+      return null;
+    }
+
+
+    if (transferType === 'RAAST') {
+      if (!/^\d{11}$/.test(receiverInput)) {
+        return 'RAAST ID must be exactly 11 digits (mobile)';
+      }
+      return null;
+    }
+
     return null;
   };
 
-  const getFinalBankName = () => {
-    if (transferType === 'fintech') {
-      return 'Fintech';
-    } else if (transferType === 'bank') {
-      return bankName;
-    }
-    return '';
-  };
+const handleVerify = async (e) => {
+  e.preventDefault();
+  setError('');
 
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    setError('');
+  const validationError = validateReceiverInput();
+  if (validationError) {
+    setError(validationError);
+    return;
+  }
 
-    const validationError = validateReceiverInput();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+  try {
+    const token = localStorage.getItem('accessToken');
+    const res = await fetch('http://localhost:8080/api/v1/transaction/verify-receiver', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        type: transferType.toUpperCase(),
+        bankName: transferType === 'banks' || transferType === 'otherwallet' ? bankName : null,
+        mobileNumber:
+          transferType === 'fintech' || transferType === 'RAAST' || transferType === 'otherwallet'
+            ? receiverInput
+            : null,
+        account: transferType === 'banks' ? receiverInput : null,
+      }),
+    });
 
-    try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:8080/api/v1/transaction/verify-receiver', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          type: transferType.toUpperCase(),
-          bankName: transferType === 'bank' ? bankName : null,
-          mobileNumber: transferType === 'fintech' ? receiverInput : null,
-          account: transferType === 'bank' ? receiverInput : null,
-        }),
-      });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Verification failed');
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Verification failed');
+    onVerified({
+      receiverName: data.data.accountHolderName || (data.data.firstName + ' ' + data.data.lastName),
+      receiverInput,
+      transferType,
+      bankName: transferType === 'fintech' || transferType === 'RAAST' ? transferType : bankName,
+      accountNumber: data.data.accountNumber || null,
+      ibanNumber: data.data.ibanNumber || null,
+    });
+  } catch (err) {
+    setError(err.message);
+  }
+};
 
-      onVerified({
-        receiverName: data.data.accountHolderName || data.data.firstName + ' ' + data.data.lastName,
-        receiverInput,
-        transferType,
-        bankName: transferType === 'fintech' ? 'Fintech' : bankName,
-      });
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   return (
     <div
@@ -98,7 +135,10 @@ const VerifyReceiver = ({ onVerified, onBack }) => {
           <div className="card-body p-4">
             <div className="text-center mb-4">
               <h3 className="mb-2 d-flex align-items-center justify-content-center">
-                <span className="me-3" style={{ fontSize: '1.5rem', color: '#667eea' }}>
+                <span
+                  className="me-3"
+                  style={{ fontSize: '1.5rem', color: '#667eea' }}
+                >
                   <FaCheckCircle />
                 </span>
                 Verify Receiver
@@ -128,13 +168,17 @@ const VerifyReceiver = ({ onVerified, onBack }) => {
                   }}
                 >
                   <option value="fintech">Fintech</option>
-                  <option value="bank">Bank</option>
+                  <option value="banks">Banks</option>
+                  <option value="otherwallet">Other Wallet</option>
+                  <option value="RAAST">RAAST</option>
                 </select>
               </div>
 
-              {transferType === 'bank' && (
+              {(transferType === 'banks' || transferType === 'otherwallet') && (
                 <div className="mb-4">
-                  <label className="form-label fw-bold">Select Bank</label>
+                  <label className="form-label fw-bold">
+                    {transferType === 'banks' ? 'Select Bank' : 'Select Wallet'}
+                  </label>
                   <select
                     value={bankName}
                     onChange={(e) => setBankName(e.target.value)}
@@ -146,16 +190,22 @@ const VerifyReceiver = ({ onVerified, onBack }) => {
                       border: '1px solid rgba(0, 0, 0, 0.1)',
                     }}
                   >
-                    <option value="">-- Select Bank --</option>
-                    {banks.map((b) => (
-                      <option key={b} value={b}>{b}</option>
+                    <option value="">
+                      -- Select {transferType === 'banks' ? 'Bank' : 'Wallet'} --
+                    </option>
+                    {(transferType === 'banks' ? banks : wallets).map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
                     ))}
                   </select>
                 </div>
               )}
 
               <div className="mb-4">
-                <label className="form-label fw-bold">Number / IBAN / Account</label>
+                <label className="form-label fw-bold">
+                  Number / IBAN / Account
+                </label>
                 <input
                   type="text"
                   value={receiverInput}
@@ -164,9 +214,11 @@ const VerifyReceiver = ({ onVerified, onBack }) => {
                   placeholder={
                     transferType === 'fintech'
                       ? '11-digit mobile number'
-                      : bankName === 'Nayapay' || bankName === 'Easypaisa'
+                      : transferType === 'RAAST'
+                      ? '11-digit Raast ID'
+                      : transferType === 'otherwallet'
                       ? '11-digit mobile number'
-                      : 'PK.. IBAN 24 chars'
+                      : 'PK.. IBAN or 10-16 digit account'
                   }
                   style={{
                     borderRadius: '10px',
@@ -210,7 +262,8 @@ const VerifyReceiver = ({ onVerified, onBack }) => {
                   style={{
                     borderRadius: '10px',
                     padding: '0.75rem 1.5rem',
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    background:
+                      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                     color: 'white',
                     transition: 'all 0.3s ease',
                   }}
@@ -232,7 +285,10 @@ const VerifyReceiver = ({ onVerified, onBack }) => {
           }}
         >
           <div className="card-body p-3 text-center">
-            <p className="text-white mb-0" style={{ fontSize: '0.9rem', opacity: '0.8' }}>
+            <p
+              className="text-white mb-0"
+              style={{ fontSize: '0.9rem', opacity: '0.8' }}
+            >
               🔒 Your data is secured with end-to-end encryption
             </p>
           </div>
